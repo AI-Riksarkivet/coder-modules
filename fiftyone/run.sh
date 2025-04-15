@@ -39,9 +39,6 @@ else
   log "FiftyOne not found. Installing via pip3..."
   # Determine package specifier based on version variable
   # package_spec="fiftyone" # Uncomment if using version variable
-  # if [[ -n "$FIFTYONE_VERSION" ]]; then # Uncomment if using version variable
-  #   package_spec="fiftyone==$FIFTYONE_VERSION" # Uncomment if using version variable
-  # fi # Uncomment if using version variable
 
   # Use --user if sudo isn't available/desired, adjust as needed for your environment
   # If running as root in the container, --user might not be needed.
