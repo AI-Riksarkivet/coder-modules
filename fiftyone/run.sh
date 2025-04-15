@@ -5,7 +5,7 @@ set -euo pipefail
 
 # --- Configuration ---
 # These variables are templated in by Terraform from main.tf
-PORT="${PORT:-5151}"
+PORT="$${PORT:-5151}"
 # FIFTYONE_VERSION="${FIFTYONE_VERSION:-}" # Uncomment if using the version variable
 
 # --- Helper Functions ---
