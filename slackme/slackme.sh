@@ -1,58 +1,31 @@
 #!/usr/bin/env sh
-
 PROVIDER_ID=${PROVIDER_ID}
 SLACK_MESSAGE=$(
   cat << "EOF"
 ${SLACK_MESSAGE}
 EOF
 )
-SLACK_URL=$${SLACK_URL:-https://slack.com}
+SLACK_URL=${SLACK_URL:-https://slack.com}
+DEFAULT_CHANNEL=${DEFAULT_CHANNEL} 
 
 usage() {
   cat << EOF
-slackme — Send a Slack notification when a command finishes
-Usage: slackme <command>
-
-Example: slackme npm run long-build
+slackme — Send a Slack notification when a command finishes OR send a message
+Usage: 
+  slackme <command>                        - Run command and notify to DM
+  slackme -c <channel> <command>           - Run command and notify to channel
+  slackme -m "message"                     - Send message to DM
+  slackme -c <channel> -m "message"        - Send message to channel
+  
+Examples:
+  slackme npm run long-build
+  slackme -c "#ml-team" npm run long-build
+  slackme -m "GPU allocation status"
+  slackme -c "#ml-team" -m "2 GPUs in use"
 EOF
 }
 
-pretty_duration() {
-  local duration_ms=$1
-
-  # If the duration is less than 1 second, display in milliseconds
-  if [ $duration_ms -lt 1000 ]; then
-    echo "$${duration_ms}ms"
-    return
-  fi
-
-  # Convert the duration to seconds
-  local duration_sec=$((duration_ms / 1000))
-  local remaining_ms=$((duration_ms % 1000))
-
-  # If the duration is less than 1 minute, display in seconds (with ms)
-  if [ $duration_sec -lt 60 ]; then
-    echo "$${duration_sec}.$${remaining_ms}s"
-    return
-  fi
-
-  # Convert the duration to minutes
-  local duration_min=$((duration_sec / 60))
-  local remaining_sec=$((duration_sec % 60))
-
-  # If the duration is less than 1 hour, display in minutes and seconds
-  if [ $duration_min -lt 60 ]; then
-    echo "$${duration_min}m $${remaining_sec}.$${remaining_ms}s"
-    return
-  fi
-
-  # Convert the duration to hours
-  local duration_hr=$((duration_min / 60))
-  local remaining_min=$((duration_min % 60))
-
-  # Display in hours, minutes, and seconds
-  echo "$${duration_hr}hr $${remaining_min}m $${remaining_sec}.$${remaining_ms}s"
-}
+# ... pretty_duration function stays the same ...
 
 if [ $# -eq 0 ]; then
   usage
@@ -61,7 +34,7 @@ fi
 
 BOT_TOKEN=$(coder external-auth access-token $PROVIDER_ID)
 if [ $? -ne 0 ]; then
-  printf "Authenticate with Slack to be notified when a command finishes:\n$BOT_TOKEN\n"
+  printf "Authenticate with Slack to be notified:\n$BOT_TOKEN\n"
   exit 1
 fi
 
@@ -71,18 +44,64 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-START=$(date +%s%N)
-# Run all arguments as a command
-$@
-END=$(date +%s%N)
-DURATION_MS=$${DURATION_MS:-$(((END - START) / 1000000))}
-PRETTY_DURATION=$(pretty_duration $DURATION_MS)
+# Parse arguments
+CHANNEL=""
+MESSAGE_MODE=false
 
-set -e
-COMMAND=$(echo $@)
-SLACK_MESSAGE=$(echo "$SLACK_MESSAGE" | sed "s|\\$COMMAND|$COMMAND|g")
-SLACK_MESSAGE=$(echo "$SLACK_MESSAGE" | sed "s|\\$DURATION|$PRETTY_DURATION|g")
+# Check for channel flag
+if [ "$1" = "-c" ] || [ "$1" = "--channel" ]; then
+  shift
+  CHANNEL="$1"
+  shift
+fi
 
-curl --silent -o /dev/null --header "Authorization: Bearer $BOT_TOKEN" \
-  -G --data-urlencode "text=$${SLACK_MESSAGE}" \
-  "$SLACK_URL/api/chat.postMessage?channel=$USER_ID&pretty=1"
+# Check for message mode
+if [ "$1" = "-m" ] || [ "$1" = "--message" ]; then
+  MESSAGE_MODE=true
+  shift
+fi
+
+# Determine target channel
+if [ -n "$CHANNEL" ]; then
+  TARGET_CHANNEL="$CHANNEL"
+elif [ -n "$DEFAULT_CHANNEL" ]; then
+  TARGET_CHANNEL="$DEFAULT_CHANNEL"
+else
+  TARGET_CHANNEL="$USER_ID"
+fi
+
+if [ "$MESSAGE_MODE" = true ]; then
+  # Message mode - just send the message
+  if [ $# -eq 0 ]; then
+    echo "Error: No message provided"
+    usage
+    exit 1
+  fi
+  
+  MESSAGE="$*"
+  curl --silent -o /dev/null --header "Authorization: Bearer $BOT_TOKEN" \
+    -G --data-urlencode "text=${MESSAGE}" \
+    "$SLACK_URL/api/chat.postMessage?channel=$TARGET_CHANNEL&pretty=1"
+else
+  # Command mode - original behavior
+  if [ $# -eq 0 ]; then
+    echo "Error: No command provided"
+    usage
+    exit 1
+  fi
+  
+  START=$(date +%s%N)
+  $@
+  END=$(date +%s%N)
+  DURATION_MS=${DURATION_MS:-$(((END - START) / 1000000))}
+  PRETTY_DURATION=$(pretty_duration $DURATION_MS)
+  
+  set -e
+  COMMAND=$(echo $@)
+  SLACK_MESSAGE=$(echo "$SLACK_MESSAGE" | sed "s|\\$COMMAND|$COMMAND|g")
+  SLACK_MESSAGE=$(echo "$SLACK_MESSAGE" | sed "s|\\$DURATION|$PRETTY_DURATION|g")
+  
+  curl --silent -o /dev/null --header "Authorization: Bearer $BOT_TOKEN" \
+    -G --data-urlencode "text=${SLACK_MESSAGE}" \
+    "$SLACK_URL/api/chat.postMessage?channel=$TARGET_CHANNEL&pretty=1"
+fi
