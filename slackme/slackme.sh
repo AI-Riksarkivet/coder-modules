@@ -5,7 +5,7 @@ SLACK_MESSAGE=$(
 ${SLACK_MESSAGE}
 EOF
 )
-SLACK_URL=$${SLACK_URL:-https://slack.com}
+SLACK_URL=${SLACK_URL:-https://slack.com}
 DEFAULT_CHANNEL="${DEFAULT_CHANNEL}"
 
 usage() {
@@ -20,42 +20,42 @@ EOF
 }
 
 pretty_duration() {
-  local duration_ms=$$1
-  if [ $$duration_ms -lt 1000 ]; then
-    echo "$${duration_ms}ms"
+  local duration_ms=$1
+  if [ $duration_ms -lt 1000 ]; then
+    echo "${duration_ms}ms"
     return
   fi
-  local duration_sec=$$((duration_ms / 1000))
-  local remaining_ms=$$((duration_ms % 1000))
-  if [ $$duration_sec -lt 60 ]; then
-    echo "$${duration_sec}.$${remaining_ms}s"
+  local duration_sec=$((duration_ms / 1000))
+  local remaining_ms=$((duration_ms % 1000))
+  if [ $duration_sec -lt 60 ]; then
+    echo "${duration_sec}.${remaining_ms}s"
     return
   fi
-  local duration_min=$$((duration_sec / 60))
-  local remaining_sec=$$((duration_sec % 60))
-  if [ $$duration_min -lt 60 ]; then
-    echo "$${duration_min}m $${remaining_sec}.$${remaining_ms}s"
+  local duration_min=$((duration_sec / 60))
+  local remaining_sec=$((duration_sec % 60))
+  if [ $duration_min -lt 60 ]; then
+    echo "${duration_min}m ${remaining_sec}.${remaining_ms}s"
     return
   fi
-  local duration_hr=$$((duration_min / 60))
-  local remaining_min=$$((duration_min % 60))
-  echo "$${duration_hr}hr $${remaining_min}m $${remaining_sec}.$${remaining_ms}s"
+  local duration_hr=$((duration_min / 60))
+  local remaining_min=$((duration_min % 60))
+  echo "${duration_hr}hr ${remaining_min}m ${remaining_sec}.${remaining_ms}s"
 }
 
-if [ $$# -eq 0 ]; then
+if [ $# -eq 0 ]; then
   usage
   exit 1
 fi
 
-BOT_TOKEN=$$(coder external-auth access-token $$PROVIDER_ID)
-if [ $$? -ne 0 ]; then
-  printf "Authenticate with Slack to be notified:\n$$BOT_TOKEN\n"
+BOT_TOKEN=$(coder external-auth access-token $PROVIDER_ID)
+if [ $? -ne 0 ]; then
+  printf "Authenticate with Slack to be notified:\n$BOT_TOKEN\n"
   exit 1
 fi
 
-USER_ID=$$(coder external-auth access-token $$PROVIDER_ID --extra "authed_user.id")
-if [ $$? -ne 0 ]; then
-  printf "Failed to get authenticated user ID:\n$$USER_ID\n"
+USER_ID=$(coder external-auth access-token $PROVIDER_ID --extra "authed_user.id")
+if [ $? -ne 0 ]; then
+  printf "Failed to get authenticated user ID:\n$USER_ID\n"
   exit 1
 fi
 
@@ -63,56 +63,56 @@ fi
 CHANNEL=""
 MESSAGE_MODE=false
 
-if [ "$$1" = "-c" ] || [ "$$1" = "--channel" ]; then
+if [ "$1" = "-c" ] || [ "$1" = "--channel" ]; then
   shift
-  CHANNEL="$$1"
+  CHANNEL="$1"
   shift
 fi
 
-if [ "$$1" = "-m" ] || [ "$$1" = "--message" ]; then
+if [ "$1" = "-m" ] || [ "$1" = "--message" ]; then
   MESSAGE_MODE=true
   shift
 fi
 
 # Determine target channel
-if [ -n "$$CHANNEL" ]; then
-  TARGET_CHANNEL="$$CHANNEL"
-elif [ -n "$$DEFAULT_CHANNEL" ]; then
-  TARGET_CHANNEL="$$DEFAULT_CHANNEL"
+if [ -n "$CHANNEL" ]; then
+  TARGET_CHANNEL="$CHANNEL"
+elif [ -n "$DEFAULT_CHANNEL" ]; then
+  TARGET_CHANNEL="$DEFAULT_CHANNEL"
 else
-  TARGET_CHANNEL="$$USER_ID"
+  TARGET_CHANNEL="$USER_ID"
 fi
 
-if [ "$$MESSAGE_MODE" = true ]; then
-  if [ $$# -eq 0 ]; then
+if [ "$MESSAGE_MODE" = true ]; then
+  if [ $# -eq 0 ]; then
     echo "Error: No message provided"
     usage
     exit 1
   fi
   
-  MESSAGE="$$*"
-  curl --silent -o /dev/null --header "Authorization: Bearer $$BOT_TOKEN" \
-    -G --data-urlencode "text=$${MESSAGE}" \
-    "$$SLACK_URL/api/chat.postMessage?channel=$$TARGET_CHANNEL&pretty=1"
+  MESSAGE="$*"
+  curl --silent -o /dev/null --header "Authorization: Bearer $BOT_TOKEN" \
+    -G --data-urlencode "text=${MESSAGE}" \
+    "$SLACK_URL/api/chat.postMessage?channel=$TARGET_CHANNEL&pretty=1"
 else
-  if [ $$# -eq 0 ]; then
+  if [ $# -eq 0 ]; then
     echo "Error: No command provided"
     usage
     exit 1
   fi
   
-  START=$$(date +%s%N)
-  $$@
-  END=$$(date +%s%N)
-  DURATION_MS=$${DURATION_MS:-$$(((END - START) / 1000000))}
-  PRETTY_DURATION=$$(pretty_duration $$DURATION_MS)
+  START=$(date +%s%N)
+  $@
+  END=$(date +%s%N)
+  DURATION_MS=${DURATION_MS:-$(((END - START) / 1000000))}
+  PRETTY_DURATION=$(pretty_duration $DURATION_MS)
   
   set -e
-  COMMAND=$$(echo $$@)
-  SLACK_MESSAGE=$$(echo "$$SLACK_MESSAGE" | sed "s|\\$$COMMAND|$$COMMAND|g")
-  SLACK_MESSAGE=$$(echo "$$SLACK_MESSAGE" | sed "s|\\$$DURATION|$$PRETTY_DURATION|g")
+  COMMAND=$(echo $@)
+  SLACK_MESSAGE=$(echo "$SLACK_MESSAGE" | sed "s|\\$COMMAND|$COMMAND|g")
+  SLACK_MESSAGE=$(echo "$SLACK_MESSAGE" | sed "s|\\$DURATION|$PRETTY_DURATION|g")
   
-  curl --silent -o /dev/null --header "Authorization: Bearer $$BOT_TOKEN" \
-    -G --data-urlencode "text=$${SLACK_MESSAGE}" \
-    "$$SLACK_URL/api/chat.postMessage?channel=$$TARGET_CHANNEL&pretty=1"
+  curl --silent -o /dev/null --header "Authorization: Bearer $BOT_TOKEN" \
+    -G --data-urlencode "text=${SLACK_MESSAGE}" \
+    "$SLACK_URL/api/chat.postMessage?channel=$TARGET_CHANNEL&pretty=1"
 fi
