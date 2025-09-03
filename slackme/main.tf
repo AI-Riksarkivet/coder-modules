@@ -36,16 +36,16 @@ resource "coder_script" "install_slackme" {
   display_name = "install_slackme"
   run_on_start = true
   script = <<OUTER
-    #!/usr/bin/env bash
-    set -e
-    CODER_DIR=$(dirname $(which coder))
-    cat > $CODER_DIR/slackme <<INNER
-${replace(templatefile("${path.module}/slackme.sh", {
+#!/usr/bin/env bash
+set -e
+CODER_DIR=$$(dirname $$(which coder))
+cat > $$CODER_DIR/slackme <<'INNER'
+${templatefile("${path.module}/slackme.sh", {
   PROVIDER_ID : var.auth_provider_id,
-  SLACK_MESSAGE : replace(var.slack_message, "`", "\\`"),
+  SLACK_MESSAGE : var.slack_message,
   DEFAULT_CHANNEL : var.default_channel,
-}), "$", "\\$")}
+})}
 INNER
-    chmod +x $CODER_DIR/slackme
+chmod +x $$CODER_DIR/slackme
 OUTER
 }
