@@ -25,6 +25,12 @@ variable "slack_message" {
   default     = "👨‍💻 `$COMMAND` completed in $DURATION"
 }
 
+variable "default_channel" {
+  type        = string
+  description = "Default Slack channel for notifications"
+  default     = ""  # Empty means use DM
+}
+
 resource "coder_script" "install_slackme" {
   agent_id     = var.agent_id
   display_name = "install_slackme"
@@ -32,15 +38,14 @@ resource "coder_script" "install_slackme" {
   script = <<OUTER
     #!/usr/bin/env bash
     set -e
-
     CODER_DIR=$(dirname $(which coder))
     cat > $CODER_DIR/slackme <<INNER
 ${replace(templatefile("${path.module}/slackme.sh", {
   PROVIDER_ID : var.auth_provider_id,
   SLACK_MESSAGE : replace(var.slack_message, "`", "\\`"),
+  DEFAULT_CHANNEL : var.default_channel,
 }), "$", "\\$")}
 INNER
-
     chmod +x $CODER_DIR/slackme
-    OUTER 
+OUTER
 }
