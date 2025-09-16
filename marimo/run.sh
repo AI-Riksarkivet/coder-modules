@@ -3,6 +3,7 @@ set -euo pipefail
 
 echo "=== Starting Marimo Setup ==="
 echo "PORT: ${PORT}"
+echo "BASE_URL: ${BASE_URL}"
 
 # Check if marimo is installed
 if ! uv pip list | grep -q marimo; then
@@ -23,7 +24,7 @@ echo "=== Starting marimo server ==="
 cd /home/coder
 
 # Start marimo
-uv run marimo edit --headless --host $(hostname -i) --port ${PORT} > /tmp/marimo.log 2>&1 &
+uv run marimo edit --headless --host ${BASE_URL} --port ${PORT} > /tmp/marimo.log 2>&1 &
 
 MARIMO_PID=$!
 
