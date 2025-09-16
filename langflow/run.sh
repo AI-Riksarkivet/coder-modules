@@ -14,10 +14,10 @@ export LANGFLOW_HOST="0.0.0.0"
 # Create and setup langflow venv if it doesn't exist
 if [ ! -d "$${LANGFLOW_VENV}" ]; then
     printf "Creating Langflow virtual environment...\n"
-    uv venv "$${LANGFLOW_VENV}"
+    uv venv "${LANGFLOW_VENV}"
     
     printf "Installing Langflow in virtual environment...\n"
-    uv pip install -q --python "$${LANGFLOW_VENV}/bin/python" langflow || {
+    uv pip install -q --python "${LANGFLOW_VENV}/bin/python" langflow || {
         echo "ERROR: Failed to install Langflow"
         exit 1
     }
@@ -34,7 +34,7 @@ cd /home/coder
 
 # Start Langflow using uv run with the venv Python
 # Note: Langflow doesn't have a --base-url flag, so we only use it with subdomain=true
-uv run --python "$${LANGFLOW_VENV}/bin/python" langflow run \
+uv run --python "${LANGFLOW_VENV}/bin/python" langflow run \
     --host 0.0.0.0 \
     --port ${PORT} \
     --no-open-browser \
