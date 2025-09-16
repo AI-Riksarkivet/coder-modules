@@ -16,6 +16,12 @@ variable "agent_id" {
   description = "The ID of a Coder agent."
 }
 
+variable "agent_name" {
+  type        = string
+  description = "The name of the coder_agent resource. (Only required if subdomain is false and the template uses multiple agents.)"
+  default     = null
+}
+
 variable "port" {
   type        = number
   description = "The port to run marimo on."
@@ -61,15 +67,21 @@ variable "group" {
   default     = null
 }
 
+locals {
+  server_base_path = var.subdomain ? "" : format("/@%s/%s%s/apps/%s", data.coder_workspace_owner.me.name, data.coder_workspace.me.name, var.agent_name != null ? ".${var.agent_name}" : "", var.slug)
+  url              = "http://localhost:${var.port}${local.server_base_path}"
+  healthcheck_url  = "http://localhost:${var.port}${local.server_base_path}/health"
+}
+
 resource "coder_script" "marimo" {
   agent_id     = var.agent_id
   display_name = "Marimo Notebook"
   icon         = "/icon/jupyter.svg"
   run_on_start = true
   script       = templatefile("${path.module}/run.sh", {
-    PORT = var.port
-    BASE_URL : var.subdomain ? "" : "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}/apps/marimo"
-    LOG_PATH : var.log_path
+    PORT             = var.port
+    SERVER_BASE_PATH = local.server_base_path
+    LOG_PATH         = var.log_path
   })
 }
 
@@ -77,7 +89,7 @@ resource "coder_app" "marimo" {
   agent_id     = var.agent_id
   slug         = var.slug
   display_name = "Marimo"
-  url          = var.subdomain ? "http://localhost:${var.port}" : "http://localhost:${var.port}/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}/apps/marimo"
+  url          = local.url
   icon         = "/icon/jupyter.svg"
   subdomain    = var.subdomain
   share        = var.share
@@ -85,7 +97,7 @@ resource "coder_app" "marimo" {
   group        = var.group
   
   healthcheck {
-    url       = "http://localhost:${var.port}/health"
+    url       = local.healthcheck_url
     interval  = 5
     threshold = 6
   }
