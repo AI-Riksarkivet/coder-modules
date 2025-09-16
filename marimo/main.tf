@@ -59,6 +59,7 @@ resource "coder_script" "marimo" {
   run_on_start = true
   script       = templatefile("${path.module}/run.sh", {
     PORT = var.port
+    BASE_URL : var.subdomain ? "" : "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}/apps/marimo"
   })
 }
 
@@ -66,7 +67,7 @@ resource "coder_app" "marimo" {
   agent_id     = var.agent_id
   slug         = var.slug
   display_name = "Marimo"
-  url          = "http://localhost:${var.port}"
+  url          = var.subdomain ? "http://localhost:${var.port}" : "http://localhost:${var.port}/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}/apps/marimo"
   icon         = "/icon/jupyter.svg"
   subdomain    = var.subdomain
   share        = var.share
