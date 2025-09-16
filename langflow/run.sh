@@ -6,18 +6,7 @@ LANGFLOW_VENV="/home/coder/.langflow-venv"
 
 printf "$${BOLD}Starting Langflow Server...\n\n"
 
-# Create langflow.env file
-cat > /home/coder/langflow.env << EOF
-DO_NOT_TRACK=true
-LANGFLOW_PORT=${PORT}
-LANGFLOW_HOST=0.0.0.0
-LANGFLOW_WORKERS=1
-LANGFLOW_LOG_LEVEL=info
-LANGFLOW_LOG_FILE=${LOG_PATH}
-EOF
-
-printf "Created environment file at /home/coder/langflow.env\n"
-
+# Create and setup langflow venv if it doesn't exist
 if [ ! -d "$${LANGFLOW_VENV}" ]; then
     printf "Creating Langflow virtual environment...\n"
     uv venv "$${LANGFLOW_VENV}"
@@ -31,12 +20,18 @@ else
     printf "Using existing Langflow environment\n"
 fi
 
+
 printf "Starting Langflow server...\n"
 cd /home/coder
 
-# Start Langflow with env-file
-uv run --python "$${LANGFLOW_VENV}/bin/python" langflow run \
-    --env-file /home/coder/langflow.env \
+# Start Langflow with CLI flags instead of env file
+uv run --python "$${LANGFLOW_VENV}/bin/python" langflow run \ 
+    --host 0.0.0.0 \
+    --do-not-track False
+    --port ${PORT} \
+    --workers 1 \
+    --log-level info \
+    --log-file ${LOG_PATH} \
     --no-open-browser \
     >> ${LOG_PATH} 2>&1 &
 
