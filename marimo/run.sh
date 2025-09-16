@@ -14,4 +14,4 @@ echo "=== Starting marimo server ==="
 cd /home/coder
 
 # Start marimo
-uv run marimo edit --headless --host ${BASE_URL} --port ${PORT} > /tmp/${LOG_PATH} 2>&1 &
+uv run marimo edit --headless --host ${BASE_URL} --port ${PORT} > ${LOG_PATH} 2>&1 &
