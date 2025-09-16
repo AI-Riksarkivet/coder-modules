@@ -16,11 +16,6 @@ fi
 echo "=== Testing marimo ==="
 uv run python -c "import marimo; print(f'Marimo version: {marimo.__version__}')"
 
-# Kill ONLY marimo server processes, not the script itself
-echo "=== Cleaning up old processes ==="
-pkill -f "marimo edit" || true
-pkill -f "marimo server" || true
-# Don't use pkill -f marimo as it kills the script!
 
 sleep 2
 
@@ -28,7 +23,7 @@ echo "=== Starting marimo server ==="
 cd /home/coder
 
 # Start marimo
-uv run python -m marimo edit --headless --host 0.0.0.0 --port ${PORT} > /tmp/marimo.log 2>&1 &
+uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} > /tmp/marimo.log 2>&1 &
 MARIMO_PID=$!
 
 echo "Started marimo with PID: $${MARIMO_PID}"
