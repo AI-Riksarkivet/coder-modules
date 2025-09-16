@@ -1,7 +1,7 @@
 ---
 display_name: Marimo 
 description: A module that adds Marimo in your Coder template.
-icon: ../../../../.icons/python.svg
+icon: ../../../../.icons/jupyter.svg
 verified: true
 tags: [marimo, ide, web]
 ---
