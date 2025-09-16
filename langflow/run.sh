@@ -12,7 +12,7 @@ if [ ! -d "$${LANGFLOW_VENV}" ]; then
     uv venv "$${LANGFLOW_VENV}"
     
     printf "Installing Langflow in virtual environment...\n"
-    uv pip install -q --python "$${LANGFLOW_VENV}/bin/python" langflow || {
+    uv pip install -q --python "$${LANGFLOW_VENV}/bin/python" langflow[docling] || {
         echo "ERROR: Failed to install Langflow"
         exit 1
     }
@@ -20,18 +20,19 @@ else
     printf "Using existing Langflow environment\n"
 fi
 
+HOST_IP=$(hostname -i | awk '{print $1}')
 
 printf "Starting Langflow server...\n"
 cd /home/coder
 
 # Start Langflow with CLI flags instead of env file
-uv run --python "$${LANGFLOW_VENV}/bin/python" langflow run \ 
-    --host "0.0.0.0" \
+uv run --python "$${LANGFLOW_VENV}/bin/python" langflow run \
+    --host "$${HOST_IP}" \
     --port ${PORT} \
     --log-level info \
     --log-file ${LOG_PATH} \
     --no-open-browser \
     >> ${LOG_PATH} 2>&1 &
 
-printf "📂 Serving at http://localhost:${PORT}${SERVER_BASE_PATH}\n\n"
+printf "📂 Serving at http://$${HOST_IP}:${PORT}${SERVER_BASE_PATH}\n"
 printf "📝 Logs at ${LOG_PATH}\n\n"
