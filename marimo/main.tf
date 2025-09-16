@@ -25,7 +25,7 @@ variable "agent_name" {
 variable "port" {
   type        = number
   description = "The port to run marimo on."
-  default     = 8080
+  default     = 2818
 }
 
 variable "subdomain" {
