@@ -1,57 +1,58 @@
 #!/usr/bin/env bash
+set -x  # Enable debug mode to see every command
 set -euo pipefail
 
-printf "Starting Marimo Notebook Server...\n"
+echo "=== Starting Marimo Setup ==="
+echo "PORT: ${PORT}"
+echo "PWD: $(pwd)"
+echo "USER: $(whoami)"
 
-# Install if needed
-if ! uv pip list | grep -q marimo; then
-    printf "Installing marimo...\n"
-    uv pip install marimo --break-system-packages
+# Check if marimo is installed
+echo "=== Checking marimo installation ==="
+if uv pip list | grep -q marimo; then
+    echo "Marimo is already installed"
+else
+    echo "Installing marimo..."
+    uv pip install marimo --break-system-packages || {
+        echo "ERROR: Failed to install marimo"
+        exit 1
+    }
 fi
 
-# Kill any existing marimo processes
-pkill -f "marimo" || true
-sleep 2
+echo "=== Verifying marimo installation ==="
+uv pip show marimo || echo "WARNING: Could not show marimo package"
 
-printf "Attempting to start marimo...\n"
+echo "=== Testing marimo command ==="
+uv run python -c "import marimo; print(f'Marimo version: {marimo.__version__}')" || {
+    echo "ERROR: Cannot import marimo"
+    exit 1
+}
+
+echo "=== Killing existing processes ==="
+pkill -f marimo || true
+
+echo "=== Starting marimo server ==="
 cd /home/coder
 
-# Try to run marimo directly first to see any errors
-printf "Testing marimo command directly:\n"
-uv run marimo --version
-
-printf "\nStarting marimo server...\n"
-# Run it in foreground first to see errors
-timeout 5 uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} || true
-
-printf "\nNow starting in background...\n"
-# Now try background
-uv run marimo edit --host 0.0.0.0 --port ${PORT} > /tmp/marimo.log 2>&1 &
+# Start with explicit Python invocation
+echo "Running: uv run python -m marimo edit --headless --host 0.0.0.0 --port ${PORT}"
+uv run python -m marimo edit --headless --host 0.0.0.0 --port ${PORT} &
 MARIMO_PID=$!
 
-sleep 3
+echo "Started with PID: $${MARIMO_PID}"
+sleep 5
 
-printf "Checking if marimo started (PID: $${MARIMO_PID})...\n"
+echo "=== Checking process status ==="
 if ps -p $${MARIMO_PID} > /dev/null; then
-    printf "✓ Process is running\n"
+    echo "SUCCESS: Process is running"
     ps -fp $${MARIMO_PID}
+    
+    # Check port
+    echo "=== Checking port ==="
+    netstat -tulpn | grep ${PORT} || echo "Port ${PORT} not found in netstat"
+    lsof -i:${PORT} || echo "Port ${PORT} not found in lsof"
 else
-    printf "✗ Process died\n"
-    printf "Log contents:\n"
-    cat /tmp/marimo.log
-    
-    printf "\nTrying alternative command...\n"
-    # Try without uv run
-    marimo edit --headless --host 0.0.0.0 --port ${PORT} > /tmp/marimo2.log 2>&1 &
-    MARIMO_PID2=$!
-    sleep 3
-    
-    if ps -p $${MARIMO_PID2} > /dev/null; then
-        printf "✓ Alternative command worked (PID: $${MARIMO_PID2})\n"
-    else
-        printf "✗ Alternative also failed\n"
-        cat /tmp/marimo2.log
-    fi
+    echo "ERROR: Process died"
 fi
 
-printf "Script completed\n"
+echo "=== Script completed ==="
