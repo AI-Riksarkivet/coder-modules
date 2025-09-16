@@ -26,9 +26,8 @@ cd /home/coder
 
 # Start Langflow with CLI flags instead of env file
 uv run --python "$${LANGFLOW_VENV}/bin/python" langflow run \ 
-    --host 0.0.0.0 \
+    --host "0.0.0.0" \
     --port ${PORT} \
-    --workers 1 \
     --log-level info \
     --log-file ${LOG_PATH} \
     --no-open-browser \
