@@ -8,6 +8,9 @@ terraform {
   }
 }
 
+data "coder_workspace" "me" {}
+data "coder_workspace_owner" "me" {}
+
 variable "agent_id" {
   type        = string
   description = "The ID of a Coder agent."
