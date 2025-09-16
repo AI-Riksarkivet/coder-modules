@@ -13,7 +13,7 @@ A module that adds Marimo in your Coder template.
 ```tf
 module "marimo" {
   count     = data.coder_workspace.me.start_count
-  source    = source = "git::https://github.com/AI-Riksarkivet/coder-modules.git//marimo?ref=main"
+  source    = "git::https://github.com/AI-Riksarkivet/coder-modules.git//marimo?ref=main"
   agent_id  = coder_agent.main.id
   port      = 8080
   subdomain = false
