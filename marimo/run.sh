@@ -19,14 +19,14 @@ nohup uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} > /tmp/marimo.
 max_attempts=30
 attempt=1
 while ! curl -s "http://localhost:${PORT}/health" > /dev/null 2>&1; do
-    if [ $attempt -ge $max_attempts ]; then
-        echo "Failed to start marimo after ${max_attempts} attempts."
+    if [ $${attempt} -ge $${max_attempts} ]; then
+        echo "Failed to start marimo after $${max_attempts} attempts."
         cat /tmp/marimo.log
         exit 1
     fi
-    echo "Waiting for marimo to start (attempt ${attempt}/${max_attempts})..."
+    echo "Waiting for marimo to start (attempt $${attempt}/$${max_attempts})..."
     sleep 2
-    attempt=$((attempt + 1))
+    attempt=$$((attempt + 1))
 done
 
 echo "Marimo is running on port ${PORT}"
