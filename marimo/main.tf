@@ -29,11 +29,11 @@ variable "subdomain" {
 resource "coder_script" "marimo" {
   agent_id     = var.agent_id
   display_name = "marimo-notebook"
-  icon         = "/icon/python.svg"
+  icon         = "/icon/jupyter.svg"
   run_on_start = true
-  script = replace(templatefile("${path.module}/run.sh", {
+  script       = templatefile("${path.module}/run.sh", {
     PORT = var.port
-  }), "$", "\\$")
+  })
 }
 
 resource "coder_app" "marimo" {
