@@ -31,6 +31,12 @@ variable "slug" {
   default     = "marimo"
 }
 
+variable "log_path" {
+  type        = string
+  description = "The path to log marimo to."
+  default     = "/tmp/marimo.log"
+}
+
 variable "share" {
   type    = string
   default = "owner"
@@ -60,6 +66,7 @@ resource "coder_script" "marimo" {
   script       = templatefile("${path.module}/run.sh", {
     PORT = var.port
     BASE_URL : var.subdomain ? "" : "/@${data.coder_workspace_owner.me.name}/${data.coder_workspace.me.name}/apps/marimo"
+    LOG_PATH : var.log_path
   })
 }
 
@@ -76,7 +83,7 @@ resource "coder_app" "marimo" {
   
   healthcheck {
     url       = "http://localhost:${var.port}/health"
-    interval  = 3
-    threshold = 10
+    interval  = 5
+    threshold = 6
   }
 }
