@@ -1,6 +1,5 @@
 terraform {
   required_version = ">= 1.0"
-
   required_providers {
     coder = {
       source  = "coder/coder"
@@ -26,9 +25,36 @@ variable "subdomain" {
   default     = false
 }
 
+variable "slug" {
+  type        = string
+  description = "The slug of the coder_app resource."
+  default     = "marimo"
+}
+
+variable "share" {
+  type    = string
+  default = "owner"
+  validation {
+    condition     = var.share == "owner" || var.share == "authenticated" || var.share == "public"
+    error_message = "Incorrect value. Please set either 'owner', 'authenticated', or 'public'."
+  }
+}
+
+variable "order" {
+  type        = number
+  description = "The order determines the position of app in the UI presentation."
+  default     = null
+}
+
+variable "group" {
+  type        = string
+  description = "The name of a group that this app belongs to."
+  default     = null
+}
+
 resource "coder_script" "marimo" {
   agent_id     = var.agent_id
-  display_name = "marimo-notebook"
+  display_name = "Marimo Notebook"
   icon         = "/icon/jupyter.svg"
   run_on_start = true
   script       = templatefile("${path.module}/run.sh", {
@@ -38,12 +64,14 @@ resource "coder_script" "marimo" {
 
 resource "coder_app" "marimo" {
   agent_id     = var.agent_id
-  slug         = "marimo"
+  slug         = var.slug
   display_name = "Marimo"
   url          = "http://localhost:${var.port}"
-  icon         = "/icon/python.svg"
+  icon         = "/icon/jupyter.svg"
   subdomain    = var.subdomain
-  share        = "owner"
+  share        = var.share
+  order        = var.order
+  group        = var.group
   
   healthcheck {
     url       = "http://localhost:${var.port}/health"
