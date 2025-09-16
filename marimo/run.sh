@@ -1,25 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Check if marimo is installed
-if ! uv pip list | grep -q marimo; then
-    echo "Installing marimo..."
-    uv pip install -q marimo --break-system-packages || {
+BOLD='\033[[0;1m'
+MARIMO_VENV="/home/coder/.marimo-venv"
+
+printf "$${BOLD}Starting Marimo Notebook Server...\n\n"
+
+# Create and setup marimo venv if it doesn't exist
+if [ ! -d "$${MARIMO_VENV}" ]; then
+    printf "Creating marimo virtual environment...\n"
+    uv venv "$${MARIMO_VENV}"
+    
+    printf "Installing marimo in virtual environment...\n"
+    uv pip install -q --python "$${MARIMO_VENV}/bin/python" marimo || {
         echo "ERROR: Failed to install marimo"
         exit 1
     }
+else
+    printf "Using existing marimo environment\n"
 fi
 
-echo "=== Starting marimo server ==="
+
+printf "Starting marimo server...\n"
 cd /home/coder
 
-# Start marimo with proper base URL if needed
+# Start marimo using uv run with the venv Python
 if [ -n "${SERVER_BASE_PATH}" ]; then
-    uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} --no-token --base-url=${SERVER_BASE_PATH} >> ${LOG_PATH} 2>&1 &
+    uv run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --host 0.0.0.0 --port ${PORT} --no-token --base-url=${SERVER_BASE_PATH} >> ${LOG_PATH} 2>&1 &
 else
-    uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} --no-token >> ${LOG_PATH} 2>&1 &
+    uv run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --host 0.0.0.0 --port ${PORT} --no-token >> ${LOG_PATH} 2>&1 &
 fi
 
 printf "📂 Serving at http://localhost:${PORT}${SERVER_BASE_PATH}\n\n"
-
 printf "📝 Logs at ${LOG_PATH}\n\n"
