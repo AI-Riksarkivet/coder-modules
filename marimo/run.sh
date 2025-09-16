@@ -15,9 +15,9 @@ cd /home/coder
 
 # Start marimo with proper base URL if needed
 if [ -n "${SERVER_BASE_PATH}" ]; then
-    uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} --base-url=${SERVER_BASE_PATH} >> ${LOG_PATH} 2>&1 &
+    uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} --no-token --base-url=${SERVER_BASE_PATH} >> ${LOG_PATH} 2>&1 &
 else
-    uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} >> ${LOG_PATH} 2>&1 &
+    uv run marimo edit --headless --host 0.0.0.0 --port ${PORT} --no-token >> ${LOG_PATH} 2>&1 &
 fi
 
 printf "📂 Serving at http://localhost:${PORT}${SERVER_BASE_PATH}\n\n"
