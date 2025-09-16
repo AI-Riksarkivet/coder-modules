@@ -23,8 +23,7 @@ echo "=== Starting marimo server ==="
 cd /home/coder
 
 # Start marimo
-HOST_IP=$(hostname -i)
-uv run marimo edit --headless --host ${HOST_IP} --port ${PORT} > /tmp/marimo.log 2>&1 &
+uv run marimo edit --headless --host $(hostname -i) --port ${PORT} > /tmp/marimo.log 2>&1 &
 
 MARIMO_PID=$!
 
