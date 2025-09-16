@@ -25,9 +25,6 @@ else
     printf "Using existing Langflow environment\n"
 fi
 
-# Kill any existing Langflow processes on the port
-lsof -ti:${PORT} | xargs kill -9 2>/dev/null || true
-sleep 2
 
 printf "Starting Langflow server...\n"
 cd /home/coder
