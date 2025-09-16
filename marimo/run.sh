@@ -26,7 +26,7 @@ cd /home/coder
 
 # Start marimo using uv run with the venv Python
 if [ -n "${SERVER_BASE_PATH}" ]; then
-    uv run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --watch --host 0.0.0.0 --port ${PORT} --no-token --base-url --sandbox=${SERVER_BASE_PATH} >> ${LOG_PATH} 2>&1 &
+    uv run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --watch --host 0.0.0.0 --port ${PORT} --no-token --sandbox --base-url=${SERVER_BASE_PATH} >> ${LOG_PATH} 2>&1 &
 else
     uv run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --watch --host 0.0.0.0 --port ${PORT} --no-token  --sandbox>> ${LOG_PATH} 2>&1 &
 fi
