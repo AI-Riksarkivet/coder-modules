@@ -37,8 +37,6 @@ cd /home/coder
 # Start Langflow with env-file
 uv run --python "$${LANGFLOW_VENV}/bin/python" langflow run \
     --env-file /home/coder/langflow.env \
-    --host 0.0.0.0 \
-    --port ${PORT} \
     --no-open-browser \
     >> ${LOG_PATH} 2>&1 &
 
