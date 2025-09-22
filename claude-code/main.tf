@@ -112,6 +112,7 @@ locals {
   agentapi_start_script_b64          = base64encode(file("${path.module}/scripts/agentapi-start.sh"))
   agentapi_wait_for_start_script_b64 = base64encode(file("${path.module}/scripts/agentapi-wait-for-start.sh"))
   remove_last_session_id_script_b64  = base64encode(file("${path.module}/scripts/remove-last-session-id.js"))
+  commit_slash_command_script_b64    = base64encode(file("${path.module}/scripts/commit.md"))
   claude_code_app_slug               = "ccw"
 }
 
@@ -217,6 +218,12 @@ resource "coder_script" "claude_code" {
     echo -n "${local.remove_last_session_id_script_b64}" | base64 -d > "$module_path/scripts/remove-last-session-id.js"
     chmod +x "$module_path/scripts/agentapi-start.sh"
     chmod +x "$module_path/scripts/agentapi-wait-for-start.sh"
+
+    # Setup Claude Code slash commands
+    echo "Setting up Claude Code slash commands..."
+    mkdir -p "$HOME/.claude/commands"
+    echo -n "${local.commit_slash_command_script_b64}" | base64 -d > "$HOME/.claude/commands/commit.md"
+    echo "✅ Claude Code /commit slash command installed"
 
     if [ "${var.experiment_report_tasks}" = "true" ]; then
       echo "Configuring Claude Code to report tasks via Coder MCP..."
