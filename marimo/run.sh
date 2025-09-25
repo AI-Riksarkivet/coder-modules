@@ -24,11 +24,13 @@ fi
 printf "Starting marimo server...\n"
 cd /home/coder
 
+# https://docs.astral.sh/uv/guides/integration/marimo/#using-marimo-with-inline-script-metadata
+
 # Start marimo using uv run with the venv Python
 if [ -n "${SERVER_BASE_PATH}" ]; then
-    uv run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --watch --host 0.0.0.0 --port ${PORT} --no-token --base-url=${SERVER_BASE_PATH} --sandbox my_notebook.py >> ${LOG_PATH} 2>&1 &
+    uvx run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --watch --host 0.0.0.0 --port ${PORT} --no-token --base-url=${SERVER_BASE_PATH} --sandbox my_notebook.py >> ${LOG_PATH} 2>&1 &
 else
-    uv run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --watch --host 0.0.0.0 --port ${PORT} --no-token --sandbox my_notebook.py >> ${LOG_PATH} 2>&1 &
+    uvx run --python "$${MARIMO_VENV}/bin/python" marimo edit --headless --watch --host 0.0.0.0 --port ${PORT} --no-token --sandbox my_notebook.py >> ${LOG_PATH} 2>&1 &
 fi
 
 printf "📂 Serving at http://localhost:${PORT}${SERVER_BASE_PATH}\n\n"
