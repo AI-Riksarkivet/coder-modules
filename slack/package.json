@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "@slack/bolt": "^4.4.0",
-    "body-parser": "^2.2.0"
+    "body-parser": "^2.2.1"
   }
 }
